@@ -5,13 +5,17 @@
 #   1. the openDAQ SDK with only the native streaming server module,
 #   2. AndroidDeviceModule, from opendaq-android-device-module,
 #   3. UniversalFunctionBlocksModule, from opendaq-universal-function-blocks,
+#      when that repository is there,
 #   4. libsensor_server.so, the JNI library in native/server.
 #
 #   tool/build_native.sh
 #
 # The two modules are separate repositories, expected beside this one;
 # ANDROID_DEVICE_MODULE and UNIVERSAL_FUNCTION_BLOCKS name other folders. Their
-# sources are built here, against this app's SDK build.
+# sources are built here, against this app's SDK build. The app needs the
+# Android device module. The function blocks module is optional: without it,
+# the phone serves its sensors without the renderer, the derived signals and
+# the Dashboard.
 #
 # The SDK is cloned into build/native/openDAQ from OPENDAQ_SOURCE (the openDAQ
 # repository on GitHub unless set; a local clone is faster), at the release in
@@ -56,12 +60,10 @@ LLVM="$(ls -d "$ANDROID_NDK"/toolchains/llvm/prebuilt/* | head -1)"
 for tool in git "$CMAKE" "$NINJA"; do
   command -v "$tool" > /dev/null 2>&1 || { echo "$tool is missing; see Requirements in README.md" >&2; exit 1; }
 done
-for folder in "$SENSORS" "$BLOCKS"; do
-  if [ ! -f "$folder/CMakeLists.txt" ]; then
-    echo "No module at $folder: clone opendaq-android-device-module and opendaq-universal-function-blocks beside this repository, or set ANDROID_DEVICE_MODULE and UNIVERSAL_FUNCTION_BLOCKS" >&2
-    exit 1
-  fi
-done
+if [ ! -f "$SENSORS/CMakeLists.txt" ]; then
+  echo "No Android device module at $SENSORS: clone opendaq-android-device-module beside this repository, or set ANDROID_DEVICE_MODULE" >&2
+  exit 1
+fi
 
 mkdir -p "$WORK"
 # The release, with the change Android needs, applied only when it is not
@@ -110,10 +112,16 @@ echo "== Android device module"
 configure "$SENSORS" "$WORK/android-device-arm64" "$WORK/android-device-configure.log" $COMMON $FIND
 "$CMAKE" --build "$WORK/android-device-arm64"
 
-echo "== function blocks module"
-# shellcheck disable=SC2086
-configure "$BLOCKS" "$WORK/function-blocks-arm64" "$WORK/function-blocks-configure.log" $COMMON $FIND
-"$CMAKE" --build "$WORK/function-blocks-arm64"
+BLOCKS_LIBRARY=""
+if [ -f "$BLOCKS/CMakeLists.txt" ]; then
+  echo "== function blocks module"
+  # shellcheck disable=SC2086
+  configure "$BLOCKS" "$WORK/function-blocks-arm64" "$WORK/function-blocks-configure.log" $COMMON $FIND
+  "$CMAKE" --build "$WORK/function-blocks-arm64"
+  BLOCKS_LIBRARY="$WORK/function-blocks-arm64/libuniversal_function_blocks_module.module.so"
+else
+  echo "== function blocks module: none at $BLOCKS, so the app is built without it"
+fi
 
 echo "== device server"
 # shellcheck disable=SC2086
@@ -123,15 +131,18 @@ configure "$HERE/native/server" "$WORK/sensor-server-arm64" "$WORK/sensor-server
 echo "== copying into $JNILIBS"
 mkdir -p "$JNILIBS"
 rm -f "$JNILIBS"/*.so
-for library in \
+set -- \
   "$WORK/sensor-server-arm64/libsensor_server.so" \
   "$WORK/android-device-arm64/libandroid_device_module.module.so" \
-  "$WORK/function-blocks-arm64/libuniversal_function_blocks_module.module.so" \
   "$SDK_BUILD/bin/libopendaq-64-3.so" \
   "$SDK_BUILD/bin/libdaqcoreobjects-64-3.so" \
   "$SDK_BUILD/bin/libdaqcoretypes-64-3.so" \
   "$SDK_BUILD/bin/libnative_stream_srv_module-64-3.module.so" \
-  "$LLVM/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so"; do
+  "$LLVM/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so"
+if [ -n "$BLOCKS_LIBRARY" ]; then
+  set -- "$@" "$BLOCKS_LIBRARY"
+fi
+for library in "$@"; do
   "$LLVM/bin/llvm-strip" --strip-unneeded -o "$JNILIBS/$(basename "$library")" "$library"
 done
 ls -l "$JNILIBS"

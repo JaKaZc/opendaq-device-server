@@ -18,20 +18,21 @@ modules:
 | Module | From | Purpose |
 |---|---|---|
 | AndroidDeviceModule | opendaq-android-device-module | The phone itself as the root device (`android://`), named after the phone, with its sensors as channels: Microphone, Accelerometer, Gyroscope, Magnetometer, Orientation, Proximity, Light, Camera, System, USB and more |
-| UniversalFunctionBlocksModule | opendaq-universal-function-blocks | The function blocks the phone runs: Universal renderer, Sound level meter, Spectrum, Vibration and Dashboard |
+| UniversalFunctionBlocksModule | opendaq-universal-function-blocks, optional | The function blocks the phone runs: Universal renderer, Sound level meter, Spectrum, Vibration and Dashboard |
 | OpenDAQNativeStreamingServerModule | the openDAQ SDK | Serves the instance over openDAQ's native protocol on TCP port 7420 |
 
 ## The openDAQ phone projects
 
-This repository is one of four that work together. Clone them side by side
-into one folder, because the build scripts find each other there.
+This repository is one of four that work together, but each one stands on
+its own: take only the parts you need, and build your own around them.
+"Needs" says what a repository cannot do without.
 
 | Repository | What it is | Needs |
 |---|---|---|
-| opendaq-android-device-module | openDAQ module, **Android only**: the phone's sensors as one device, `android://` | openDAQ SDK, Android NDK |
-| opendaq-universal-function-blocks | openDAQ module, UniversalFunctionBlocksModule: Universal renderer, Level, Spectrum, Vibration, Sound level meter and Dashboard | openDAQ SDK |
-| **opendaq-device-server** (this one) | Android app that serves the phone as an openDAQ device on the network | both modules, Android 8 or newer, arm64 |
-| opendaq-studio-desktop | openDAQ Studio, the desktop client for macOS and Windows | the function blocks module |
+| [opendaq-android-device-module](https://github.com/JaKaZc/opendaq-android-device-module) | openDAQ module, **Android only**: the phone's sensors and state as one device, `android://` | The openDAQ SDK and the Android NDK |
+| [opendaq-universal-function-blocks](https://github.com/JaKaZc/opendaq-universal-function-blocks) | openDAQ module, UniversalFunctionBlocksModule: Universal renderer, Level, Spectrum, Vibration, Sound level meter and Dashboard, for any platform | The openDAQ SDK |
+| **opendaq-device-server** (this one) | Android app that serves the phone as an openDAQ device on the network | The Android device module. The function blocks module is optional |
+| [opendaq-studio-desktop](https://github.com/JaKaZc/opendaq-studio-desktop) | openDAQ Studio, the desktop client for macOS and Windows, for any openDAQ device | Nothing else. The function blocks module is optional |
 
 ```
  Android phone: this app                              Computer: opendaq-studio-desktop
@@ -52,6 +53,28 @@ into one folder, because the build scripts find each other there.
 All four are built against the same openDAQ SDK release, **v3.40.3**.
 openDAQ's native protocol does not connect a client of one release to a server
 of another, so the phone and the computer must use the same release.
+
+## Use only what you need
+
+- **The Android device module is required.** The app is its host: without
+  [opendaq-android-device-module](https://github.com/JaKaZc/opendaq-android-device-module) there is
+  nothing to serve.
+- **The function blocks module is optional.** When
+  [opendaq-universal-function-blocks](https://github.com/JaKaZc/opendaq-universal-function-blocks)
+  is not beside this repository, the app is built without it. The phone then
+  serves its sensors without the Universal renderer, the derived signals
+  (Sound level, Sound spectrum, Vibration) and the Dashboard.
+- **Any openDAQ client.** openDAQ Studio
+  ([opendaq-studio-desktop](https://github.com/JaKaZc/opendaq-studio-desktop)) is one client. A
+  Python, C++ or C# program with the openDAQ SDK 3.40.3 is another; the
+  Android device module's README shows one.
+- **Your own app.** This app is one way to host the Android device module.
+  Its native side, `native/server/src/server.cpp`, is short: it loads the
+  modules, makes the phone the root device, adds function blocks and starts
+  openDAQ's native streaming server. Your own app can do the same with other
+  servers, such as openDAQ's OPC UA server, or with modules of your own: add
+  their libraries to `tool/build_native.sh` and to `NativeServer.modules`, and
+  the function blocks to add at start to `NativeServer.functionBlocks`.
 
 ## How it works
 
@@ -181,7 +204,8 @@ service lacks the camera type. Include the camera before starting instead.
 | What | Version | Notes |
 |---|---|---|
 | A Mac or Linux computer | | The native build is a POSIX shell script. Gradle runs anywhere |
-| opendaq-android-device-module and opendaq-universal-function-blocks | | Cloned beside this repository, or named by `ANDROID_DEVICE_MODULE` and `UNIVERSAL_FUNCTION_BLOCKS` |
+| [opendaq-android-device-module](https://github.com/JaKaZc/opendaq-android-device-module) | required | Cloned beside this repository, or named by `ANDROID_DEVICE_MODULE` |
+| [opendaq-universal-function-blocks](https://github.com/JaKaZc/opendaq-universal-function-blocks) | optional | Cloned beside this repository, or named by `UNIVERSAL_FUNCTION_BLOCKS`; without it the app has no function blocks |
 | Android Studio | with Android SDK 36 | For the SDK, the NDK and the Java that Gradle needs |
 | Android NDK | 28.2 (the version it is built and tested with) | Android Studio's SDK Manager, under SDK Tools |
 | Java | 17 or newer | Android Studio's own Java works (see below) |
@@ -195,11 +219,14 @@ The phone needs Android 8 (API 26) or newer, arm64.
 
 ## Building
 
-```
- any-folder/
-   opendaq-android-device-module/
-   opendaq-universal-function-blocks/
-   opendaq-device-server/          <- build here
+Clone the app and the Android device module side by side, and the function
+blocks too if you want them:
+
+```bash
+git clone https://github.com/JaKaZc/opendaq-device-server.git
+git clone https://github.com/JaKaZc/opendaq-android-device-module.git
+git clone https://github.com/JaKaZc/opendaq-universal-function-blocks.git   # optional
+cd opendaq-device-server
 ```
 
 ```bash
@@ -218,8 +245,9 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
    fails across libraries on Android; the Android device module's README explains it,
 2. builds the SDK for Android arm64 with only the native streaming server
    module,
-3. builds AndroidDeviceModule and UniversalFunctionBlocksModule from the sibling
-   repositories, and the JNI library in `native/server`, against that SDK,
+3. builds AndroidDeviceModule from its sibling repository,
+   UniversalFunctionBlocksModule when its repository is there, and the JNI
+   library in `native/server`, all against that SDK,
 4. copies the stripped libraries and `libc++_shared.so` into
    `app/src/main/jniLibs/arm64-v8a`.
 

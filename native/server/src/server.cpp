@@ -182,8 +182,19 @@ extern "C" JNIEXPORT jstring JNICALL Java_io_opendaq_sensorserver_NativeServer_s
         // The default root device keeps its own name whatever the info says.
         instance.getRootDevice().setName(name);
 
+        // A module the app was built without, such as the function blocks
+        // module, is skipped: the phone is served without its blocks.
         for (const auto& library : texts(env, modules))
-            loadModule(library);
+        {
+            try
+            {
+                loadModule(library);
+            }
+            catch (const std::exception& error)
+            {
+                __android_log_print(ANDROID_LOG_WARN, kTag, "Skipped module %s: %s", library.c_str(), error.what());
+            }
+        }
 
         sensors.clear();
         for (const auto& connection : texts(env, devices))
