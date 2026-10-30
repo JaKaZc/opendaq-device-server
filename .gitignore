@@ -1,0 +1,16 @@
+# Gradle and Android Studio
+.gradle/
+.kotlin/
+.idea/
+build/
+app/build/
+local.properties
+
+# The native libraries, built by tool/build_native.sh
+app/src/main/jniLibs/
+
+# APKs, published as release files instead
+dist/
+*.apk
+
+.DS_Store

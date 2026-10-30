@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- USB devices the phone device reads: cameras (video class) and serial
+     devices (communication class). Android offers to open the app when one is
+     plugged in, which also gives it the permission to read it. -->
+<resources>
+    <usb-device class="14" />
+    <usb-device class="2" />
+</resources>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">openDAQ Device Server</string>
+    <string name="summary">This phone serves its sensors as the channels of an openDAQ device on the Wi-Fi. openDAQ Studio on a computer on the same network finds the phone under device discovery or adds it by its connection string.</string>
+    <string name="start">Start the server</string>
+    <string name="stop">Stop</string>
+    <string name="quit">Quit</string>
+    <string name="quit_app">Quit the app</string>
+    <string name="starting">Starting openDAQ</string>
+    <string name="stopped">The server is stopped.</string>
+    <string name="stopped_detail">Start it to serve the microphone, the accelerometer, the gyroscope, the proximity and light sensors, on Samsung phones the infrared light stream and, when included, the camera.</string>
+    <string name="no_network">The phone is not on a network. Join a Wi-Fi network first.</string>
+    <string name="start_failed">openDAQ could not start: %1$s</string>
+    <string name="background_note">The server keeps running in the background while the app is closed and the screen is off. Stop it here or from its notification. Anyone on the same network can connect, so run it only on a network you trust.</string>
+    <string name="include_camera">Include the camera</string>
+    <string name="include_camera_detail">Starts the Camera channel, which serves JPEG pictures. Without it, the channel is inactive. A running camera keeps Android\'s privacy indicator on and uses more battery.</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="dashboard_detail">Open this address in any browser on the same network to watch the phone\'s signals and change its settings.</string>
+    <string name="dashboard_pin">PIN for changes: %1$s</string>
+    <string name="dashboard_no_pin">The page only shows; changes are off.</string>
+    <string name="channel_name">Device server</string>
+    <string name="channel_description">Shows that the phone serves its sensors on the network.</string>
+    <plurals name="serving">
+        <item quantity="one">Serving %1$d active sensor.</item>
+        <item quantity="other">Serving %1$d active sensors.</item>
+    </plurals>
+    <plurals name="streaming">
+        <item quantity="one">Streaming %1$d sensor on %2$s.</item>
+        <item quantity="other">Streaming %1$d sensors on %2$s.</item>
+    </plurals>
+    <plurals name="clients">
+        <item quantity="one">%1$d client is connected.</item>
+        <item quantity="other">%1$d clients are connected.</item>
+    </plurals>
+</resources>
