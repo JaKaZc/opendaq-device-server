@@ -3,6 +3,12 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// The openDAQ release the native libraries are built at, from the file the
+// native build reads too. The SDK names its libraries after its major
+// version, such as libopendaq-64-3.so, and the app loads its modules by name.
+val opendaqVersion = System.getenv("OPENDAQ_VERSION")
+    ?: rootDir.resolve("OPENDAQ_VERSION").readText().trim()
+
 android {
     namespace = "io.opendaq.sensorserver"
     compileSdk = 36
@@ -18,6 +24,12 @@ android {
         ndk {
             abiFilters += "arm64-v8a"
         }
+        buildConfigField("String", "OPENDAQ_VERSION", "\"$opendaqVersion\"")
+        buildConfigField("String", "OPENDAQ_MAJOR", "\"${opendaqVersion.substringBefore('.')}\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     // GnssTime, PhoneStatus and UsbReader, from the Android device module, which

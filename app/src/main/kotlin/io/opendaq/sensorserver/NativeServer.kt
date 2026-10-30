@@ -13,7 +13,7 @@ object NativeServer {
     /// (opendaq-universal-function-blocks).
     val modules = arrayOf(
         "libandroid_device_module.module.so",
-        "libnative_stream_srv_module-64-3.module.so",
+        "libnative_stream_srv_module-64-${BuildConfig.OPENDAQ_MAJOR}.module.so",
         "libuniversal_function_blocks_module.module.so",
     )
 

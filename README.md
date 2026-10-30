@@ -313,7 +313,7 @@ adb install -r app/build/outputs/apk/release/app-release.apk
 | `ANDROID_DEVICE_MODULE` | `../opendaq-android-device-module` | The Android device module's sources. Gradle also reads the property `-PandroidDeviceModule=` |
 | `UNIVERSAL_FUNCTION_BLOCKS` | `../opendaq-universal-function-blocks` | The function blocks module's sources |
 | `OPENDAQ_SOURCE` | `https://github.com/openDAQ/openDAQ.git` | Where to clone the SDK from; a local clone is faster |
-| `SDK_REF` | `v3.40.3` | The SDK release. It must match openDAQ Studio's |
+| `OPENDAQ_VERSION` | the file `OPENDAQ_VERSION`, `3.40.3` | The openDAQ SDK release. Change it in the file; the variable overrides it for one build. It must match openDAQ Studio's |
 | `ANDROID_NDK` | the newest NDK in the Android SDK | The NDK |
 | `CMAKE`, `NINJA` | `cmake`, `ninja` | The tools, when they are not on the PATH |
 

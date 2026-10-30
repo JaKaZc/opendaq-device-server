@@ -19,7 +19,7 @@
 #
 # The SDK is cloned into build/native/openDAQ from OPENDAQ_SOURCE (the openDAQ
 # repository on GitHub unless set; a local clone is faster), at the release in
-# SDK_REF, with the patch in patches/. SDK_REF has to match the openDAQ Studio
+# the file OPENDAQ_VERSION, with the patch in patches/. It has to match the openDAQ Studio
 # on the computer, because openDAQ's native protocol does not connect a client
 # of one release to a server of another development state. The first run
 # takes about ten minutes and needs network access for the SDK's
@@ -37,7 +37,10 @@ SENSORS="${ANDROID_DEVICE_MODULE:-$PARENT/opendaq-android-device-module}"
 BLOCKS="${UNIVERSAL_FUNCTION_BLOCKS:-$PARENT/opendaq-universal-function-blocks}"
 WORK="$HERE/build/native"
 SDK_SOURCE="${OPENDAQ_SOURCE:-https://github.com/openDAQ/openDAQ.git}"
-SDK_REF="${SDK_REF:-v3.40.3}"
+OPENDAQ_VERSION="${OPENDAQ_VERSION:-$(tr -d ' \r\n' < "$HERE/OPENDAQ_VERSION")}"
+SDK_REF="${SDK_REF:-v$OPENDAQ_VERSION}"
+# The SDK names its libraries after its major version, such as libopendaq-64-3.so.
+SDK_MAJOR="${OPENDAQ_VERSION%%.*}"
 CMAKE="${CMAKE:-cmake}"
 NINJA="${NINJA:-ninja}"
 JNILIBS="$HERE/app/src/main/jniLibs/arm64-v8a"
@@ -134,10 +137,10 @@ rm -f "$JNILIBS"/*.so
 set -- \
   "$WORK/sensor-server-arm64/libsensor_server.so" \
   "$WORK/android-device-arm64/libandroid_device_module.module.so" \
-  "$SDK_BUILD/bin/libopendaq-64-3.so" \
-  "$SDK_BUILD/bin/libdaqcoreobjects-64-3.so" \
-  "$SDK_BUILD/bin/libdaqcoretypes-64-3.so" \
-  "$SDK_BUILD/bin/libnative_stream_srv_module-64-3.module.so" \
+  "$SDK_BUILD/bin/libopendaq-64-$SDK_MAJOR.so" \
+  "$SDK_BUILD/bin/libdaqcoreobjects-64-$SDK_MAJOR.so" \
+  "$SDK_BUILD/bin/libdaqcoretypes-64-$SDK_MAJOR.so" \
+  "$SDK_BUILD/bin/libnative_stream_srv_module-64-$SDK_MAJOR.module.so" \
   "$LLVM/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so"
 if [ -n "$BLOCKS_LIBRARY" ]; then
   set -- "$@" "$BLOCKS_LIBRARY"
