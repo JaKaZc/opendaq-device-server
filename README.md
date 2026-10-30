@@ -107,9 +107,55 @@ ports and reads their outputs. The phone device's channels, time and
 calibration are described in the README of opendaq-android-device-module, and
 the function blocks in the README of opendaq-universal-function-blocks.
 
+## Installing
+
+Download `openDAQ-Device-Server-<version>-arm64.apk` from the
+[Releases](https://github.com/JaKaZc/opendaq-device-server/releases) on the phone, or build it
+yourself (see Building). The app is not in Google Play, so Android installs
+it only after you allow it:
+
+1. Open the downloaded APK. Android asks whether the browser or file manager
+   you opened it from may install unknown apps. Allow it in the settings page
+   it opens, then go back.
+2. Tap **Install**. Google Play Protect may say that it does not know the
+   app or offer to scan it. Choose to scan or to install anyway.
+
+Or install it from a computer over USB, with USB debugging switched on in the
+phone's developer options:
+
+```bash
+adb install -r openDAQ-Device-Server-1.2.0-arm64.apk
+```
+
+The app needs Android 8 or newer on an arm64 phone or tablet.
+
+### How releases are made
+
+Every release is built on a Mac from this repository's sources and its two
+sibling repositories, with `tool/build_native.sh` and
+`./gradlew assembleRelease` as described in Building, against openDAQ SDK
+3.40.3. The APK is signed with the Android debug key of the computer that
+builds it, not with a key from Google Play. This decides how updates work:
+
+- **A newer release installs over the installed app** and keeps its
+  settings and permissions, because the releases share one signing key.
+- **An APK you build yourself** is signed with your computer's debug key,
+  which differs. Android refuses to install it over a release, and a release
+  over it. Uninstall the app first; its settings and permissions are lost.
+
+Each release lists the APK's SHA-256 checksum in `SHA256SUMS.txt`. Check the
+download against it before you install it:
+
+```bash
+shasum -a 256 -c SHA256SUMS.txt --ignore-missing
+```
+
+A release of the Device Server and a release of openDAQ Studio work together
+when both use the same openDAQ SDK release, as their release notes state.
+
 ## Using it
 
-1. Install the APK (see Building) and open the app.
+1. Install the app (see Installing) and open it.
 2. Tap **Start the server**. Android asks for the microphone and for
    notifications. Without the microphone, its channel is inactive and the
    other sensors are served. To serve the camera as JPEG pictures too, tick
